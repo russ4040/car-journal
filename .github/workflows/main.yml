@@ -1,0 +1,41 @@
+name: Build Car Journal APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Build APK with Flet
+        run: |
+          pip install --upgrade pip
+          pip install "flet[all]" flet-cli
+          cat << 'EOF' > pyproject.toml
+          [project]
+          name = "car_journal"
+          version = "1.0.0"
+          dependencies = ["flet", "fpdf2"]
+          EOF
+          yes | flet build apk --yes --project car_journal --product "Авто-журнал" --org com.rus.carjournal
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Avto-Zhurnal-APK
+          path: build/apk/*.apk
